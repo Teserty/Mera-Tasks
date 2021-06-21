@@ -5,18 +5,9 @@ import com.spring.json.DateTimeObject;
 import com.spring.json.Input2;
 import com.spring.json.JournalAdd;
 import com.spring.json.TimeObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.*;
-
-import java.awt.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 public class TimeController {
