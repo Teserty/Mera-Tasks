@@ -83,6 +83,11 @@ public class TimeController {
             return new Response("200", dateTime.toString());
         }
     }
+    /*Задача 4
+    Пример пути
+    /journalB?time1=2000-04-09 19:36&time2=2200-04-09 19:36&timezone=6
+
+    * */
     @GetMapping("/journalB")
     public Response getJournalB(@RequestParam String time1, @RequestParam String time2, @RequestParam String timezone){
         Range range = new Range(time1, time2, timezone);
