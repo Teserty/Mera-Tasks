@@ -6,7 +6,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class JournalEntry {
+public class Journal {
     public ConcurrentHashMap<ZonedDateTime, String> map = new ConcurrentHashMap<>();
     public String getText(String time, String timeZone){
         DateTimeObject dateTimeObject= new DateTimeObject(time, timeZone);

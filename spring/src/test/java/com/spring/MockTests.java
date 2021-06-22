@@ -1,11 +1,10 @@
 package com.spring;
 
 
-import com.spring.Entry.JournalEntry;
+import com.spring.Entry.Journal;
 import com.spring.controllers.TimeController;
 import com.spring.json.DateTimeObject;
 import lombok.SneakyThrows;
-import org.apache.catalina.core.ApplicationContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,19 +14,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
-import org.springframework.web.context.support.XmlWebApplicationContext;
-
-import javax.servlet.ServletContext;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.*;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 public class MockTests {
@@ -36,8 +28,6 @@ public class MockTests {
     public void setup() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(new TimeController()).build();
     }
-    @Autowired
-    JournalEntry entry;
     @SneakyThrows
     @Test
     public void test1(){
@@ -70,6 +60,7 @@ public class MockTests {
                 post("/journal").content("{\"text\":\"Adwfwafawfawfaw\", \"timezone\":\"UTC+0\"}")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
+
         LocalDateTime localDateTime = LocalDateTime.now();
         DateTimeObject dateTimeObject = new DateTimeObject(localDateTime.toLocalDate().toString()+
                 " "+localDateTime.getHour()%24+":"+localDateTime.getMinute()%60,"UTC+0");

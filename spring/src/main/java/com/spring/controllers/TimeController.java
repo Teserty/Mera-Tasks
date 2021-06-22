@@ -1,16 +1,21 @@
 package com.spring.controllers;
 
-import com.spring.Entry.JournalEntry;
-import com.spring.json.DateTimeObject;
-import com.spring.json.Input2;
-import com.spring.json.JournalAdd;
-import com.spring.json.TimeObject;
+import com.spring.Entry.Journal;
+import com.spring.json.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
+
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 @RestController
 public class TimeController {
+    Logger logger = LoggerFactory.getLogger(TimeController.class);
+
     public ZonedDateTime convertFromZone(String dateInString, String zone1, String zone2){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime ldt = LocalDateTime.parse(dateInString, formatter);
@@ -25,9 +30,10 @@ public class TimeController {
     Пример Json: {"date": "2200-04-08 12:35", "zone1": "UTC+8", "zone2":"UTC+5"}
      */
     @PostMapping("/convert")
-    public String convert(@RequestBody TimeObject timeToConvert){
+    public Response convert(@RequestBody TimeObject timeToConvert){
         ZonedDateTime time = convertFromZone(timeToConvert.getDate(), timeToConvert.getZone1(), timeToConvert.getZone2());
-        return time.toString().replaceFirst("T", " ").substring(0, 16)+"  "+time.toString().substring(22);
+        logger.debug(time.toString() + " converted from "+timeToConvert.getDate());
+        return new Response("200",time.toString().replaceFirst("T", " ").substring(0, 16)+"  "+time.toString().substring(22));
     }
 
     /*
@@ -42,12 +48,13 @@ public class TimeController {
     * }
     * */
    @PostMapping("/period")
-   public String dateTimeDifference(@RequestBody Input2 input){
+   public Response dateTimeDifference(@RequestBody Input2 input){
        DateTimeObject dateTimeObject1 = new DateTimeObject(input.getDate1(), input.getTimeZone1());
        DateTimeObject dateTimeObject2 = new DateTimeObject(input.getDate2(), input.getTimeZone2());
        Period a = Period.between(dateTimeObject1.getZonedDateTime().toLocalDate(), dateTimeObject2.getZonedDateTime().toLocalDate());
        Duration d = Duration.between( dateTimeObject1.getZonedDateTime() , dateTimeObject2.getZonedDateTime() );
-       return a.getDays()+" "+d.toHours()%24+" "+d.toMinutes()%60;
+       logger.debug("Duration: "+a.getDays()+" "+d.toHours()%24+" "+d.toMinutes()%60);
+       return new Response("200",a.getDays()+" "+d.toHours()%24+" "+d.toMinutes()%60);
    }
    /*задача 3
 
@@ -55,17 +62,42 @@ public class TimeController {
    Пример:      {"text": "Adwfwafawfawfaw", "timezone": "UTC+6"}
                   journal/2021-06-21 12:24/UTC+5
    * */
-    JournalEntry entry = new JournalEntry();
-    @GetMapping("/journal/{time}/{timezone}")
-    public String getJournal(@PathVariable String time, @PathVariable String timezone){
+    Journal entry = new Journal();
+    @GetMapping("/journal")
+    public Response getJournal(@RequestParam String time, @RequestParam String timezone){
         if(entry.getText(time, timezone) == null) {
             System.out.println(entry.map.keySet());
             System.out.println("Not founded");
+            logger.warn(entry.map.keySet().toString() + " Not founded");
+            return new Response("500", "Not founded");
         }
-        return entry.getText(time, timezone);
+        logger.debug(entry.getText(time, timezone) + " founded with params "+ time +" "+timezone);
+        return new Response("200",entry.getText(time, timezone));
     }
     @PostMapping("/journal")
-    public ZonedDateTime addJournal(@RequestBody JournalAdd journalAdd){
-        return entry.addText(journalAdd.getTimezone(),journalAdd.getText());
+    public Response addJournal(@RequestBody JournalAdd journalAdd){
+        ZonedDateTime dateTime = entry.addText(journalAdd.getTimezone(),journalAdd.getText());
+        if (dateTime == null){
+            return new Response("200", "Value not found");
+        }else{
+            return new Response("200", dateTime.toString());
+        }
+    }
+    @GetMapping("/journalB")
+    public Response getJournalB(@RequestParam String time1, @RequestParam String time2, @RequestParam String timezone){
+        Range range = new Range(time1, time2, timezone);
+        ZonedDateTime zonedDateTime1 = range.getZonedDateTime1();
+        ZonedDateTime zonedDateTime2 = range.getZonedDateTime2();
+        List<ZonedDateTime> keys = entry.map.keySet().stream().filter((key) ->
+               key.toLocalDate().isAfter(zonedDateTime1.withZoneSameInstant(ZoneId.of("UTC+0")).toLocalDate()) &&
+               key.toLocalDate().isBefore(zonedDateTime2.withZoneSameInstant(ZoneId.of("UTC+0")).toLocalDate())
+        )
+                .collect(Collectors.toList());
+        ConcurrentLinkedQueue<String> vals = new ConcurrentLinkedQueue<>();
+        keys.forEach((key)-> {
+            vals.add(entry.map.get(key));
+        });
+        logger.warn("Founded "+vals.toString() + ". Params: " + time1 + " " +time2 + " "+timezone);
+        return new Response("200",vals.toString());
     }
 }
