@@ -1,6 +1,6 @@
 package com.spring.controllers;
 
-import com.spring.Entry.Journal;
+import com.spring.repos.Journal;
 import com.spring.json.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

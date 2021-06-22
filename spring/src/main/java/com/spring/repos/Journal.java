@@ -1,4 +1,4 @@
-package com.spring.Entry;
+package com.spring.repos;
 
 import com.spring.json.DateTimeObject;
 import java.time.LocalDateTime;
