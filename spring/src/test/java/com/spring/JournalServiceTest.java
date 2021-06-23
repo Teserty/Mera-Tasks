@@ -32,7 +32,8 @@ public class JournalServiceTest {
         Mockito.when(journal.keySet()).thenReturn(journal.map.keySet());
         Mockito.when(journal.getText("2021-04-09 19:36","UTC+3")).thenReturn("asa");
         Mockito.when(journal.addText("UTC+0", "Test")).thenReturn(time);
-        service = new JournalService(journal);
+        service = new JournalService();
+        service.entry = journal;
     }
     @Test
     public void getFromJournal(){

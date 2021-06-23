@@ -5,6 +5,7 @@ import com.spring.json.Response;
 import com.spring.services.JournalService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.time.ZonedDateTime;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -19,6 +20,7 @@ public class JournalController {
    * */
 
     private final JournalService journalService;
+    @Autowired
     public JournalController(JournalService journalService) {
         this.journalService = journalService;
     }

@@ -2,6 +2,7 @@ package com.spring.services;
 
 import com.spring.json.Range;
 import com.spring.repos.Journal;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
@@ -13,14 +14,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class JournalService {
-    private final Journal entry;
-    @Bean
-    public Journal getEntry(){
-        return new Journal();
-    }
-    public JournalService(Journal entry) {
-        this.entry = entry;
-    }
+    public Journal entry = new Journal();
 
     public String getFromJournal(String time, String timezone){
         return entry.getText(time, timezone);
