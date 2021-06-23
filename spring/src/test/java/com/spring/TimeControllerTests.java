@@ -3,9 +3,13 @@ package com.spring;
 
 import com.spring.controllers.TimeController;
 import com.spring.json.DateTimeObject;
+import com.spring.json.Input2;
+import com.spring.repos.Journal;
+import com.spring.services.TimeService;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -14,27 +18,40 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class MockTests {
+public class TimeControllerTests {
     private MockMvc mockMvc;
+    TimeService timeService;
     @Before
     public void setup() {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(new TimeController()).build();
+        timeService = Mockito.mock(TimeService.class);
+        this.mockMvc = MockMvcBuilders.standaloneSetup(new TimeController(timeService)).build();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime ldt = LocalDateTime.parse("2021-04-09 19:36", formatter);
+        ZoneId currentZone = ZoneId.of("UTC+3");
+        Mockito.when(timeService.convertFromDifferentZone("2021-04-09 19:36", "UTC+8", "UTC+3"))
+                .thenReturn(ldt.atZone(currentZone));
+        Mockito.when(timeService.dateTimeDifference(new Input2("2200-04-09 19:36", "UTC+4","2200-04-12 23:39", "UTC+5"))).thenReturn("3 1 0");
+
     }
     @SneakyThrows
     @Test
     public void test1(){
+
         mockMvc.perform(
                 post("/convert")
-                        .content("{\"date\": \"2200-04-08 12:35\", \"zone1\": \"UTC+8\", \"zone2\":\"UTC+5\"}")
+                        .content("{\"date\": \"2021-04-09 19:36\", \"zone1\": \"UTC+8\", \"zone2\":\"UTC+3\"}")
                         .contentType(MediaType.APPLICATION_JSON)
         )
-                .andExpect(jsonPath("$").value("2200-04-08 09:35  [UTC+05:00]"));
+                .andExpect(content().string("{\"status\":\"200\",\"text\":\"2021-04-09 19:36  [UTC+03:00]\"}"));
     }
     @SneakyThrows
     @Test
@@ -49,28 +66,6 @@ public class MockTests {
                                 "}")
                         .contentType(MediaType.APPLICATION_JSON)
         )
-                .andExpect(jsonPath("$").value("3 3 3"));
-    }
-    @SneakyThrows
-    @Test
-    public void test3(){
-        MvcResult result = mockMvc.perform(
-                post("/journal").content("{\"text\":\"Adwfwafawfawfaw\", \"timezone\":\"UTC+0\"}")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andReturn();
-
-        LocalDateTime localDateTime = LocalDateTime.now();
-        DateTimeObject dateTimeObject = new DateTimeObject(localDateTime.toLocalDate().toString()+
-                " "+localDateTime.getHour()%24+":"+localDateTime.getMinute()%60,"UTC+0");
-        mockMvc.perform(
-                get("/journal/"+dateTimeObject.getDate()+"/UTC+0")
-                        .contentType(MediaType.APPLICATION_JSON)
-        )
-                .andExpect(jsonPath("$").value("Adwfwafawfawfaw"));
-        //mockMvc.perform(
-        //        get("/journal/2200-04-09 20:36/UTC+5")
-        //                .contentType(MediaType.APPLICATION_JSON)
-        //)
-        //        .andExpect(jsonPath("$").value("awsa"));
+                .andExpect(content().string("{\"status\":\"200\",\"text\":\"3 1 0\"}"));
     }
 }
